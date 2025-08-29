@@ -1,4 +1,4 @@
-const { app, BrowserWindow, Menu, ipcMain, dialog } = require('electron');
+const { app, BrowserWindow, Menu, ipcMain, dialog, shell } = require('electron');
 const path = require('path');
 const fs = require('fs');
 
@@ -14,7 +14,8 @@ function createWindow() {
         webPreferences: {
             nodeIntegration: false,
             contextIsolation: true,
-            preload: path.join(__dirname, 'preload.js')
+            preload: path.join(__dirname, 'preload.js'),
+            webSecurity: true
         },
         icon: path.join(__dirname, 'assets', process.platform === 'win32' ? 'icon.ico' : 'icon.png'),
         titleBarStyle: 'default',
@@ -179,6 +180,7 @@ ipcMain.handle('write-file', async (event, filePath, data) => {
         await fs.promises.writeFile(filePath, data, 'utf8');
         return { success: true };
     } catch (error) {
+        console.error('Write file error:', error);
         return { success: false, error: error.message };
     }
 });
@@ -188,6 +190,7 @@ ipcMain.handle('read-file', async (event, filePath) => {
         const data = await fs.promises.readFile(filePath, 'utf8');
         return { success: true, data };
     } catch (error) {
+        console.error('Read file error:', error);
         return { success: false, error: error.message };
     }
 });
@@ -214,10 +217,42 @@ app.on('window-all-closed', () => {
     }
 });
 
-// Security: Prevent new window creation
+// Security: Prevent new window creation and handle external links
+app.on('web-contents-created', (event, contents) => {
+    // Updated security handling for newer Electron versions
+    contents.setWindowOpenHandler(({ url }) => {
+        // Open external links in default browser
+        shell.openExternal(url);
+        return { action: 'deny' };
+    });
+
+    // Prevent navigation to external websites
+    contents.on('will-navigate', (event, navigationUrl) => {
+        const parsedUrl = new URL(navigationUrl);
+        
+        // Allow navigation to local files only
+        if (parsedUrl.protocol !== 'file:') {
+            event.preventDefault();
+        }
+    });
+});
+
+// Handle certificate errors for development
+app.on('certificate-error', (event, webContents, url, error, certificate, callback) => {
+    if (url.startsWith('wss://localhost') || url.startsWith('ws://localhost')) {
+        // Allow localhost connections for development
+        event.preventDefault();
+        callback(true);
+    } else {
+        // Use default behavior for other URLs
+        callback(false);
+    }
+});
+
+// Prevent new window creation
 app.on('web-contents-created', (event, contents) => {
     contents.on('new-window', (event, navigationUrl) => {
         event.preventDefault();
-        require('electron').shell.openExternal(navigationUrl);
+        shell.openExternal(navigationUrl);
     });
 });
