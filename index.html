@@ -57,7 +57,7 @@
             max-width: 1600px;
             margin: 0 auto;
             display: flex;
-            justify-content: between;
+            justify-content: space-between;
             align-items: center;
             gap: 2rem;
         }
@@ -619,4 +619,250 @@
             border-radius: 4px;
         }
 
-        :
+        ::-webkit-scrollbar-thumb:hover {
+            background: var(--accent-green);
+        }
+    </style>
+</head>
+<body>
+    <div class="dashboard">
+        <header class="header">
+            <div class="header-content">
+                <div class="logo">
+                    <div class="logo-icon">📊</div>
+                    <div class="logo-text">SignalR Analytics</div>
+                </div>
+                <nav class="nav-tabs">
+                    <button class="nav-tab active" data-tab="connection">Connection</button>
+                    <button class="nav-tab" data-tab="analytics">Analytics</button>
+                    <button class="nav-tab" data-tab="statistics">Statistics</button>
+                    <button class="nav-tab" data-tab="logs">Logs</button>
+                </nav>
+                <div class="connection-status">
+                    <div class="status-dot" id="status-dot"></div>
+                    <span id="status-text">Disconnected</span>
+                </div>
+            </div>
+        </header>
+
+        <main class="main-content">
+            <!-- Connection Tab -->
+            <div class="tab-content active" id="connection-tab">
+                <div class="connection-grid">
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">🔗 Connection Settings</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <label class="input-label">WebSocket URL</label>
+                                <input type="text" class="input-field" id="websocket-url" 
+                                       value="wss://your-signalr-hub.com/crashGameHub" 
+                                       placeholder="Enter SignalR Hub URL">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Hub Name</label>
+                                <input type="text" class="input-field" id="hub-name" 
+                                       value="crashGameHub" 
+                                       placeholder="Enter Hub Name">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Authentication Token (Optional)</label>
+                                <input type="password" class="input-field" id="auth-token" 
+                                       placeholder="Enter authentication token">
+                            </div>
+                            <div class="button-group">
+                                <button class="button btn-primary" id="connect-btn">Connect</button>
+                                <button class="button btn-danger" id="disconnect-btn" disabled>Disconnect</button>
+                                <button class="button btn-secondary" id="test-connection-btn">Test Connection</button>
+                            </div>
+                        </div>
+                    </div>
+                    
+                    <div class="card">
+                        <div class="card-header">
+                            <h2 class="card-title">⚙️ Settings</h2>
+                        </div>
+                        <div class="card-body">
+                            <div class="input-group">
+                                <label class="input-label">Auto-Reconnect</label>
+                                <input type="checkbox" id="auto-reconnect" checked>
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Data Retention (hours)</label>
+                                <input type="number" class="input-field" id="data-retention" 
+                                       value="24" min="1" max="168">
+                            </div>
+                            <div class="input-group">
+                                <label class="input-label">Update Interval (ms)</label>
+                                <input type="number" class="input-field" id="update-interval" 
+                                       value="1000" min="100" max="5000">
+                            </div>
+                            <div class="button-group">
+                                <button class="button btn-secondary" id="save-settings-btn">Save Settings</button>
+                                <button class="button btn-warning" id="reset-data-btn">Reset Data</button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Analytics Tab -->
+            <div class="tab-content" id="analytics-tab">
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-value" id="total-games">0</div>
+                        <div class="stat-label">Total Games</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="avg-multiplier">0.00x</div>
+                        <div class="stat-label">Avg Multiplier</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="max-multiplier">0.00x</div>
+                        <div class="stat-label">Max Multiplier</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-value" id="win-rate">0%</div>
+                        <div class="stat-label">Win Rate (2x+)</div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📈 Recent Crash History</h2>
+                        <button class="button btn-secondary" id="clear-history-btn">Clear History</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="crash-history" id="crash-history">
+                            <!-- Crash values will be populated here -->
+                        </div>
+                    </div>
+                </div>
+
+                <div class="summary-grid">
+                    <div class="summary-card">
+                        <div class="summary-title">🎯 Multiplier Ranges</div>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="range-1-2x">0</div>
+                                <div class="summary-stat-label">1.00x - 2.00x</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="range-2-5x">0</div>
+                                <div class="summary-stat-label">2.01x - 5.00x</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="range-5-10x">0</div>
+                                <div class="summary-stat-label">5.01x - 10.00x</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="range-10x-plus">0</div>
+                                <div class="summary-stat-label">10.00x+</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="summary-card">
+                        <div class="summary-title">⚡ Quick Stats</div>
+                        <div class="summary-stats">
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="session-duration">00:00:00</div>
+                                <div class="summary-stat-label">Session Time</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="games-per-minute">0</div>
+                                <div class="summary-stat-label">Games/Min</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="last-update">Never</div>
+                                <div class="summary-stat-label">Last Update</div>
+                            </div>
+                            <div class="summary-stat">
+                                <div class="summary-stat-value" id="data-points">0</div>
+                                <div class="summary-stat-label">Data Points</div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Statistics Tab -->
+            <div class="tab-content" id="statistics-tab">
+                <div class="controls">
+                    <div>
+                        <label for="time-filter">Time Period:</label>
+                        <select id="time-filter" class="filter-select">
+                            <option value="1h">Last Hour</option>
+                            <option value="6h">Last 6 Hours</option>
+                            <option value="24h" selected>Last 24 Hours</option>
+                            <option value="7d">Last 7 Days</option>
+                            <option value="all">All Time</option>
+                        </select>
+                    </div>
+                    <div class="legend">
+                        <div class="legend-item">
+                            <div class="legend-dot martingale-safe"></div>
+                            <span>Safe</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot martingale-risky"></div>
+                            <span>Risky</span>
+                        </div>
+                        <div class="legend-item">
+                            <div class="legend-dot martingale-dangerous"></div>
+                            <span>Dangerous</span>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📊 Time-based Statistics</h2>
+                        <button class="button btn-secondary" id="refresh-stats-btn">Refresh</button>
+                    </div>
+                    <div class="card-body">
+                        <div class="table-container">
+                            <table class="table" id="statistics-table">
+                                <thead>
+                                    <tr>
+                                        <th class="time-cell">Time</th>
+                                        <th>Games</th>
+                                        <th>Avg Multi</th>
+                                        <th>Win Rate</th>
+                                        <th>Max Multi</th>
+                                        <th>Risk Level</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="statistics-table-body">
+                                    <!-- Statistics data will be populated here -->
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Logs Tab -->
+            <div class="tab-content" id="logs-tab">
+                <div class="card">
+                    <div class="card-header">
+                        <h2 class="card-title">📋 System Logs</h2>
+                        <div class="button-group">
+                            <button class="button btn-secondary" id="clear-logs-btn">Clear Logs</button>
+                            <button class="button btn-warning" id="export-logs-btn">Export Logs</button>
+                        </div>
+                    </div>
+                    <div class="card-body">
+                        <div class="log-container" id="log-container">
+                            <!-- Log entries will be populated here -->
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
+
+    <script src="renderer.js"></script>
+</body>
+</html>
