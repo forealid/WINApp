@@ -8,36 +8,63 @@
     "build": "electron-builder",
     "build-win": "electron-builder --win",
     "build-linux": "electron-builder --linux",
-    "build-all": "electron-builder --win --linux",
+    "build-mac": "electron-builder --mac",
+    "build-all": "electron-builder --win --linux --mac",
     "dist": "npm run build-all",
-    "install": "npm install"
+    "install": "npm install",
+    "postinstall": "electron-builder install-app-deps",
+    "clean": "rimraf dist"
   },
-  "keywords": ["signalr", "analytics", "dashboard", "websocket"],
-  "author": "Your Name",
+  "keywords": ["signalr", "analytics", "dashboard", "websocket", "electron"],
+  "author": "Your Name <your.email@example.com>",
   "license": "MIT",
+  "homepage": ".",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/yourusername/signalr-analytics-desktop.git"
+  },
   "devDependencies": {
     "electron": "^27.0.0",
-    "electron-builder": "^24.6.4"
+    "electron-builder": "^24.6.4",
+    "rimraf": "^5.0.5"
   },
+  "dependencies": {},
   "build": {
     "appId": "com.signalr.analytics.desktop",
     "productName": "SignalR Analytics",
     "directories": {
-      "output": "dist"
+      "output": "dist",
+      "buildResources": "build"
     },
     "files": [
       "main.js",
+      "preload.js",
+      "renderer.js",
       "index.html",
-      "package.json"
+      "package.json",
+      "assets/**/*"
+    ],
+    "extraResources": [
+      {
+        "from": "assets",
+        "to": "assets",
+        "filter": ["**/*"]
+      }
     ],
     "win": {
       "target": [
         {
           "target": "nsis",
           "arch": ["x64", "ia32"]
+        },
+        {
+          "target": "portable",
+          "arch": ["x64"]
         }
       ],
-      "icon": "assets/icon.ico"
+      "icon": "assets/icon.ico",
+      "publisherName": "SignalR Analytics",
+      "verifyUpdateCodeSignature": false
     },
     "linux": {
       "target": [
@@ -48,13 +75,40 @@
         {
           "target": "deb",
           "arch": ["x64"]
+        },
+        {
+          "target": "rpm",
+          "arch": ["x64"]
         }
       ],
-      "icon": "assets/icon.png"
+      "icon": "assets/icon.png",
+      "category": "Utility"
+    },
+    "mac": {
+      "target": [
+        {
+          "target": "dmg",
+          "arch": ["x64", "arm64"]
+        }
+      ],
+      "icon": "assets/icon.icns",
+      "category": "public.app-category.utilities"
     },
     "nsis": {
       "oneClick": false,
-      "allowToChangeInstallationDirectory": true
-    }
+      "allowToChangeInstallationDirectory": true,
+      "createDesktopShortcut": true,
+      "createStartMenuShortcut": true,
+      "shortcutName": "SignalR Analytics"
+    },
+    "dmg": {
+      "title": "SignalR Analytics",
+      "backgroundColor": "#0a0b0f",
+      "window": {
+        "width": 540,
+        "height": 380
+      }
+    },
+    "publish": null
   }
 }
